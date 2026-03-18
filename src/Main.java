@@ -5,25 +5,44 @@ import src.Wordle;
 void main() {
     //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
     // to see how IntelliJ IDEA suggests fixing it.
-    Wordle game = new Wordle("APPLE");
-    Scanner scan = new Scanner(System.in);
+    String answer = chooseRandomAnswer();
+    if (answer == null) {
+        System.out.println("Error loading data.");
+        return;
+    }
+    Wordle game = new Wordle(answer);
     game.printBoard();
-    while (true){
+    Scanner scanInput = new Scanner(System.in);
+    while (true) {
         System.out.println("Enter your guess:");
-        String guess = scan.nextLine();
-        if (guess.length() != 5) {
-            System.out.println("Invalid guess. Please enter a 5 letter word.");
+        String guess = scanInput.nextLine();
+        if (!game.guess(guess)) {
             continue;
         }
-        boolean over = game.guess(guess);
-        game.printBoard();
-        if (over) {
-            if (game.isWordGuessed()) {
-                System.out.println("Congratulations! You guessed the word in " + game.getNumGuesses() + " guesses!");
-            } else {
-                System.out.println("Game over! The secret word was: " + String.join("", game.getSecretWord()));
-            }
+        if (game.isWordGuessed()) {
+            System.out.println("Congratulations! You guessed the word in " + game.getNumGuesses() + " guesses!");
+            break;
+        } else if (game.getNumGuesses() >= 6) {
+            System.out.println("Game over! The secret word was: " + String.join("", game.getSecretWord()));
             break;
         }
+        game.printBoard();
+
     }
 }
+    public static String chooseRandomAnswer(){
+        Scanner scanFile;
+        try {
+            scanFile = new Scanner(new File("resources/possibleAnswers.txt"));
+        } catch (IOException e) {
+            System.out.println("Error loading data: " + e.getMessage());
+            return null;
+        }
+        ArrayList<String> possibleAnswers = new ArrayList<>();
+        while (scanFile.hasNextLine()) {
+            possibleAnswers.add(scanFile.nextLine().toLowerCase());
+        }
+        int randomIndex = (int) (Math.random() * possibleAnswers.size());
+        return possibleAnswers.get(randomIndex);
+    }
+
